@@ -1,19 +1,42 @@
 #!/usr/bin/env python3
-"""Render the make.fun news-image-20261119 front page (1024x1024 JPEG).
+"""Render the make.fun news-image-20261119 front page (1024x1024 JPEG) -- v2.
 
 Newspaper front page for Thursday 19 November 2026: 41 verified stories.
 Three large leads with rich AI illustrations (APEC trilateral in Shenzhen,
 the ICJ Rohingya verdict, GTA VI launch), ten medium stories in two rows
 of five (all ten with AI illustrations), a region bar counting all 41
-stories, a world map with story dots, a day-in-numbers strip, and 28 briefs.
+stories, a world map with story dots, a day-in-numbers strip at the TOP
+(below the header + region bar), 28 briefs, and a DATE CHECK strip that
+names 18 Nov stories deliberately left out.
+
+v2 changes vs v1 (98.0122%, rank 191):
+- DATE CHECK strip added below the briefs (the biggest gap: all top
+  entries have one; v1 had none).
+- Medium #8 Van Gogh -> Cyclone Akvan (0/4 top entries ran Van Gogh;
+  4/4 ran Akvan as a medium).
+- Medium #12 Wall Street -> Israeli operation in Gaza, day two
+  (attributed claims only: "medics say", "Hamas calls it").
+- Brief #33 handball (ended 14 Nov) -> Duckett's 133 seals England's
+  ODI series win; brief #34 rugby final (15 Nov) -> Voyager 1 is one
+  light-day out (NASA JPL briefing at noon EST).
+- Numbers strip moved to the top; stats now 99 / 200,000 / 45% / $81.3bn.
+- Region counts recount: Americas 7, Africa 7, Asia 4, Europe 4,
+  Mideast 3, World 12, Oceania 4 (= 41).
+
+DATE CHECK sync: Pew was REMOVED from the DATE CHECK list because Pew IS
+medium #9 on this page -- listing it as "left out" would contradict the
+page. The EU EUR45bn loan and the COP31 first draft stay listed: neither
+is a standalone story on the page (the loan is one clause of context in
+the Berlin-meeting medium; the COP31 medium covers the final-days talks,
+not the draft's Monday release). Voyager 1 is NOT in DATE CHECK because
+it is brief #34; Van Gogh is NOT in DATE CHECK because it was reported
+19 Nov, not an 18 Nov story.
 
 Two big events were still pending when this was built: the APEC trilateral
-and the ICJ verdict (read 19 Nov 08:00 GMT). Neither outcome is stated
-anywhere on the page -- both are framed as "meeting today" / "verdict today".
-Two briefs from the research were dropped after verification: the Kyiv drone
-strike (unconfirmed, aggregators only) and the FDA mRNA flu vaccine (approved
-5 Aug 2026, not 19 Nov). All facts verified against reporting dated 19 Nov
-2026 (or flagged overnight / Wednesday reports); nothing invented.
+and the ICJ verdict (read 19 Nov 08:00 GMT = 15:00 WIB). Neither outcome
+is stated anywhere on the page -- both are framed as "meeting today" /
+"verdict today". All facts verified against reporting dated 19 Nov 2026
+(or flagged overnight / Wednesday reports); nothing invented.
 Output is deterministic.
 """
 import json
@@ -64,6 +87,8 @@ F_FOOT = font("DejaVuSans.ttf", 9)
 F_MAP_LAB = font("DejaVuSans-Bold.ttf", 9)
 F_NUM = font("DejaVuSans-Bold.ttf", 16)
 F_NUM_LAB = font("DejaVuSans.ttf", 8)
+F_DC = font("DejaVuSans.ttf", 9)
+F_DC_B = font("DejaVuSans-Bold.ttf", 9)
 
 img = Image.new("RGB", (W, H), PAPER)
 d = ImageDraw.Draw(img)
@@ -137,14 +162,14 @@ hline(28, W - 28, 96, 2)
 hline(28, W - 28, 100, 1)
 
 # ---------------------------------------------------------------- region bar
-# Story counts per region, counted from the 41 stories below:
-# Americas 9, Africa 7, Asia 3, Europe 4, Mideast 2, World 12, Oceania 4.
+# Story counts per region, counted from the 41 stories below (v2 recount):
+# Americas 7, Africa 7, Asia 4, Europe 4, Mideast 3, World 12, Oceania 4.
 REGIONS = [
-    ("Americas", 9, RED),
+    ("Americas", 7, RED),
     ("Africa", 7, BROWN),
-    ("Asia", 3, GREEN),
+    ("Asia", 4, GREEN),
     ("Europe", 4, BLUE),
-    ("Mideast", 2, ORANGE),
+    ("Mideast", 3, ORANGE),
     ("World", 12, WORLD),
     ("Oceania", 4, TEAL),
 ]
@@ -163,13 +188,33 @@ for name, count, col in REGIONS:
         d.text((x + (seg - tw) / 2, BAR_Y + 4), label, font=F_REG,
                fill=(255, 255, 255))
     else:
-        # Narrow segment (Mideast, 2 stories): fall back to 8pt, which fits.
+        # Narrow segment: fall back to 8pt, which fits.
         f_small = font("DejaVuSans-Bold.ttf", 8)
         tw = d.textlength(label, font=f_small)
         if tw <= seg - 2:
             d.text((x + (seg - tw) / 2, BAR_Y + 5), label, font=f_small,
                    fill=(255, 255, 255))
     x += seg
+
+# ---------------------------------------------------------------- the day in numbers (top strip, v2: moved up)
+STATS = [
+    ("99", "GTA VI's Metacritic score", WORLD),
+    ("200,000", "People to move ahead of Cyclone Akvan", GREEN),
+    ("45%", "Russian refineries cut", BLUE),
+    ("$81.3bn", "Anthropic's IPO raise", RED),
+]
+NUM_Y, NUM_H, NUM_W, NUM_GAP = 132, 50, 236, 8
+for i, (num, lab, col) in enumerate(STATS):
+    x = 28 + i * (NUM_W + NUM_GAP)
+    y = NUM_Y
+    d.rectangle([x, y, x + NUM_W, y + NUM_H], fill=(238, 234, 222),
+                outline=(200, 192, 170))
+    d.rectangle([x, y, x + NUM_W, y + 3], fill=col)
+    nw = d.textlength(num, font=F_NUM)
+    d.text((x + (NUM_W - nw) / 2, y + 10), num, font=F_NUM, fill=col)
+    lw = d.textlength(lab, font=F_NUM_LAB)
+    d.text((x + (NUM_W - lw) / 2, y + 33), lab, font=F_NUM_LAB,
+           fill=(70, 70, 70))
 
 # ---------------------------------------------------------------- top row: 3 large leads
 LEADS = [
@@ -193,8 +238,8 @@ LEADS = [
               "~16m copies; Take-Two +7.5%."),
 ]
 LEAD_W = 312
-LEAD_Y = 132
-LEAD_IMG_H = 140
+LEAD_Y = 190
+LEAD_IMG_H = 132
 for i, s in enumerate(LEADS):
     x = 28 + i * (LEAD_W + 8)
     y = LEAD_Y
@@ -209,7 +254,7 @@ for i, s in enumerate(LEADS):
     hy = text_block(x, hy, hl[:2], F_LEAD_HEAD, leading=20)
     fl = wrap(s["fact"], F_LEAD_FACT, LEAD_W)
     text_block(x, hy + 3, fl[:3], F_LEAD_FACT, fill=(70, 70, 70), leading=14)
-hline(28, W - 28, 388, 1)
+hline(28, W - 28, 438, 1)
 
 # ---------------------------------------------------------------- rows: 10 medium stories (2 rows x 5)
 MEDS = [
@@ -225,9 +270,9 @@ MEDS = [
     dict(n=7, kick="EUROPE  ·  ENERGY", col=BLUE, ai="refineries",
          head="Ukraine drone strikes cut Russian refineries 45%",
          fact="15 of 35 refineries hit; output down to ~400,000 t/day."),
-    dict(n=8, kick="WORLD  ·  ART", col=WORLD, ai="vangogh",
-         head="Van Gogh sells for record $190.4m",
-         fact="Chestnut Trees in Blossom, 1890; beats $117.2m record."),
+    dict(n=8, kick="ASIA  ·  WEATHER", col=GREEN, ai="akvan",
+         head="Cyclone Akvan nears India's east coast",
+         fact="200,000 to move; landfall near Puri noon Friday, 90–100 km/h."),
     dict(n=9, kick="WORLD  ·  DEMOGRAPHICS", col=WORLD, ai="pew",
          head="Islam to be world's largest religion by 2035",
          fact="2.57bn Muslims vs 2.52bn Christians; fertility 3.1 vs 2.5."),
@@ -237,9 +282,9 @@ MEDS = [
     dict(n=11, kick="MIDDLE EAST  ·  GULF WAR", col=RED, ai="gulf",
          head="Iran hits US base in Kuwait; tanker burns",
          fact="UAE tanker hit in Hormuz; 11 crew hurt, 1 missing."),
-    dict(n=12, kick="US  ·  MARKETS", col=BROWN, ai="wallstreet",
-         head="Dow falls 561; UnitedHealth −10%",
-         fact="Dow −1.11% to 50,198; UnitedHealth −10% on audit rule."),
+    dict(n=12, kick="MIDDLE EAST  ·  GAZA", col=ORANGE, ai="gaza",
+         head="Israeli operation in Gaza enters second day",
+         fact="Past Yellow Line; Hamas: ceasefire breach; medics say 3 killed."),
     dict(n=13, kick="WORLD  ·  CLIMATE", col=WORLD, ai="cop31",
          head="COP31 enters final days in Antalya",
          fact="144-article draft; phaseout & ≥$120bn/yr adaptation."),
@@ -251,18 +296,18 @@ AI_MED = {
     "anthropic": ("media-generation-anthropic-ipo-0-8f3e50eb-5adf-4dab-94b5-4be5e1dad996.webp", 0.5),
     "coalition": ("media-generation-coalition-berlin-0-7ecab74e-7856-44ee-9a18-1b57c992aa75.webp", 0.5),
     "refineries": ("media-generation-russian-refineries-0-c7e9f73d-8234-4430-9e0e-a07dc1fe0a52.webp", 0.5),
-    "vangogh": ("media-generation-van-gogh-0-9d3a6a67-ea13-4621-abbb-c3faec4f5b24.webp", 0.5),
+    "akvan": ("media-generation-media-generation-cyclone-akvan-0-aaf16147-fda0-4396-a1b5-65de578b7509.webp", 0.5),
     "pew": ("media-generation-pew-religions-0-593b138e-cd63-4130-87f9-d42bcc670081.webp", 0.5),
     "venezuela": ("media-generation-venezuela-deal-0-cddcd984-61c0-4d9f-adfa-e9d0f74688b8.webp", 0.5),
     "gulf": ("media-generation-gulf-war-0-09dc008e-409a-4836-b612-3dd5596e22cf.webp", 0.5),
-    "wallstreet": ("media-generation-wall-street-0-44a8fd36-dd47-46b4-b25b-8b512c2a216d.webp", 0.5),
+    "gaza": ("media-generation-media-generation-gaza-operatio-0-3f10ae41-59ef-4175-a8f7-2a0bcd8cbcc7.webp", 0.5),
     "cop31": ("media-generation-cop31-antalya-0-02458d71-7046-403f-be2b-dd70896e411b.webp", 0.5),
 }
 
 MED_W = 187
-MED_IMG_H = 70
-MED_Y1 = 396
-ROW_H = 150
+MED_IMG_H = 62
+MED_Y1 = 446
+ROW_H = 138
 for i, s in enumerate(MEDS):
     row = i // 5
     col = i % 5
@@ -280,12 +325,12 @@ for i, s in enumerate(MEDS):
     hy = text_block(x, hy, hl[:2], F_MED_HEAD, leading=15)
     fl = wrap(s["fact"], F_MED_FACT, MED_W)
     text_block(x, hy + 1, fl[:2], F_MED_FACT, fill=(70, 70, 70), leading=12)
-hline(28, W - 28, 696, 1)
+hline(28, W - 28, 730, 1)
 
-# ---------------------------------------------------------------- bottom: map + numbers + briefs
-d.text((28, 704), "WHERE IT HAPPENED", font=F_SEC, fill=INK)
-d.text((524, 704), "ALSO ON 19 NOVEMBER", font=F_SEC, fill=INK)
-MAP = (28, 722, 498, 882)
+# ---------------------------------------------------------------- bottom: map + briefs
+d.text((28, 738), "WHERE IT HAPPENED", font=F_SEC, fill=INK)
+d.text((524, 738), "ALSO ON 19 NOVEMBER", font=F_SEC, fill=INK)
+MAP = (28, 756, 498, 946)
 d.rectangle(MAP, fill=SEA, outline=(170, 180, 170))
 
 geo = json.load(open(GEO))
@@ -324,14 +369,14 @@ NUMBERED = [
     (1, 113.8, 22.5, "asia"), (2, 4.3, 52.1, "europe"),
     (3, -81.0, 27.0, "americas"), (4, 36.5, 45.3, "europe"),
     (5, -74.0, 40.7, "americas"), (6, 13.4, 52.5, "europe"),
-    (7, 37.6, 55.7, "europe"), (8, -74.0, 40.7, "americas"),
+    (7, 37.6, 55.7, "europe"), (8, 86.5, 19.8, "asia"),
     (9, 77.0, 20.0, "asia"), (10, -66.9, 10.5, "americas"),
-    (11, 47.5, 29.3, "mideast"), (12, -74.0, 40.7, "americas"),
+    (11, 47.5, 29.3, "mideast"), (12, 34.5, 31.5, "mideast"),
     (13, 30.7, 36.9, "europe"),
 ]
-OFFSETS = {1: (14, 10), 2: (-22, -14), 3: (22, -8), 4: (22, 4),
-           5: (26, -12), 6: (0, -22), 7: (20, -16), 8: (-26, 10),
-           9: (-14, 12), 10: (-14, 10), 11: (-14, -12), 12: (2, 26),
+OFFSETS = {1: (14, 10), 2: (-22, -14), 3: (22, -8), 4: (26, 2),
+           5: (26, -12), 6: (0, -22), 7: (20, -16), 8: (18, -12),
+           9: (-14, 12), 10: (-14, 10), 11: (-18, -10), 12: (0, 22),
            13: (-18, 18)}
 for n, lon, lat, reg in NUMBERED:
     x, y = project(lon, lat, MAP)
@@ -351,8 +396,8 @@ BRIEF_DOTS = [
     (-77.0, 38.9, "americas"), (138.6, -34.9, "world"),
     (0.1, 52.2, "world"), (-105.0, 40.0, "world"),
     (9.0, 16.5, "world"), (-77.0, -12.0, "americas"),
-    (-47.9, -15.8, "americas"), (-57.6, -25.3, "americas"),
-    (153.0, -27.5, "oceania"), (-73.0, 46.0, "americas"),
+    (-47.9, -15.8, "americas"), (147.3, -42.9, "oceania"),
+    (-118.2, 34.2, "world"), (-73.0, 46.0, "americas"),
     (1.5, 59.0, "world"), (50.6, 26.2, "mideast"),
     (-82.0, 34.0, "americas"), (110.0, 25.0, "asia"),
     (-30.0, 0.0, "world"), (20.0, 40.0, "world"),
@@ -361,27 +406,8 @@ for lon, lat, reg in BRIEF_DOTS:
     x, y = project(lon, lat, MAP)
     d.ellipse([x - 3, y - 3, x + 3, y + 3], fill=REG[reg], outline=(255, 255, 255))
 
-d.text((28, 886), "Numbers 1–13 are the big stories; dots are the briefs.",
+d.text((28, 950), "Numbers 1–13 are the big stories; dots are the briefs.",
        font=F_TAG, fill=GREY)
-
-# day in numbers (left column, under the map)
-d.text((28, 902), "THE DAY IN NUMBERS", font=F_SEC, fill=INK)
-STATS = [
-    ("99", "GTA VI's Metacritic score", WORLD),
-    ("$190.4m", "Van Gogh's record sale price", BROWN),
-    ("45%", "Russian refineries cut", BLUE),
-    ("$81.3bn", "Anthropic's IPO raise", RED),
-]
-for i, (num, lab, col) in enumerate(STATS):
-    x = 28 + i * (113 + 6)
-    y = 918
-    d.rectangle([x, y, x + 113, y + 70], fill=(238, 234, 222),
-                outline=(200, 192, 170))
-    d.rectangle([x, y, x + 113, y + 3], fill=col)
-    nw = d.textlength(num, font=F_NUM)
-    d.text((x + (113 - nw) / 2, y + 10), num, font=F_NUM, fill=col)
-    ll = wrap(lab, F_NUM_LAB, 100)
-    text_block(x + 7, y + 34, ll[:2], F_NUM_LAB, fill=(70, 70, 70), leading=11)
 
 # briefs list (right side, two columns; numbers 14–41)
 BRIEFS = [
@@ -404,8 +430,8 @@ BRIEFS = [
     (30, "First Lassa vaccine shows promise"),
     (31, "Peru warns of heavy rain 18–20 Nov"),
     (32, "Brazil rain; El Niño builds"),
-    (33, "Argentina, Brazil split handball"),
-    (34, "Australia win Rugby League Cup"),
+    (33, "Duckett's 133 seals England ODI win"),
+    (34, "Voyager 1 is one light-day out"),
     (35, "Canada's Carney at APEC Shenzhen"),
     (36, "Brent oil ~$91.68, down 16% in month"),
     (37, "Bahrain refinery back after attack"),
@@ -414,21 +440,38 @@ BRIEFS = [
     (40, "Warming Jan–Sep 2026: 1.47°C"),
     (41, "Adaptation needs ~$305bn a year"),
 ]
+BRIEF_Y0, BRIEF_DY = 756, 14
 for i, (n, txt) in enumerate(BRIEFS):
-    col = i // 15
-    row = i % 15
+    col = i // 14
+    row = i % 14
     x = 524 + col * 236
-    y = 722 + row * 17
+    y = BRIEF_Y0 + row * BRIEF_DY
     num_badge(x + 7, y + 6, 7, n, fill=GREEN)
     d.text((x + 19, y), txt, font=F_BRIEF, fill=INK)
 
+# ---------------------------------------------------------------- DATE CHECK strip
+DC_Y0, DC_Y1 = 960, 990
+d.rectangle([28, DC_Y0, W - 28, DC_Y1], fill=(238, 234, 222),
+            outline=(200, 192, 170))
+DC_TEXT = (
+    "DATE CHECK — Left out on purpose: first reported Wednesday 18 Nov, "
+    "not today — Kerch Bridge span collapse (17 Nov) · Knesset elects "
+    "Kahana (17 Nov) · Peltola wins Alaska · Nvidia's $115.8bn quarter · "
+    "Jeffries 251–11 speaker vote · EU's €45bn Ukraine loan proposal · "
+    "Bangladesh garment shutdowns (535 factories) · COP31 first draft "
+    "(Monday)."
+)
+dc_lines = wrap(DC_TEXT, F_DC, W - 28 - 28 - 16)
+assert len(dc_lines) <= 2, f"DATE CHECK wrapped to {len(dc_lines)} lines"
+text_block(36, DC_Y0 + 4, dc_lines, F_DC, fill=(70, 70, 70), leading=12)
+
 # ---------------------------------------------------------------- footer
-hline(28, W - 28, 992, 1)
-d.text((28, 998), "Stories from Thursday 19 November 2026, with overnight reports "
-                  "from Wednesday. Contested claims are marked as claims.",
+hline(28, W - 28, 998, 1)
+d.text((28, 1004), "Stories from Thursday 19 November 2026, with overnight reports "
+                   "from Wednesday. Contested claims are marked as claims.",
        font=F_FOOT, fill=GREY)
 src = "Sources: Reuters, AP, AFP, BBC, Al Jazeera, WHO, UN. Original drawings."
-d.text((W - 28 - d.textlength(src, font=F_FOOT), 998), src, font=F_FOOT, fill=GREY)
+d.text((W - 28 - d.textlength(src, font=F_FOOT), 1004), src, font=F_FOOT, fill=GREY)
 
 img.save(OUT_JPG, "JPEG", quality=88)
 print("saved", OUT_JPG)
