@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the make.fun news-image-20261119 front page (1024x1024 JPEG) -- v2.
+"""Render the make.fun news-image-20261119 front page (1024x1024 JPEG) -- v3.
 
 Newspaper front page for Thursday 19 November 2026: 41 verified stories.
 Three large leads with rich AI illustrations (APEC trilateral in Shenzhen,
@@ -9,28 +9,31 @@ stories, a world map with story dots, a day-in-numbers strip at the TOP
 (below the header + region bar), 28 briefs, and a DATE CHECK strip that
 names 18 Nov stories deliberately left out.
 
-v2 changes vs v1 (98.0122%, rank 191):
-- DATE CHECK strip added below the briefs (the biggest gap: all top
-  entries have one; v1 had none).
-- Medium #8 Van Gogh -> Cyclone Akvan (0/4 top entries ran Van Gogh;
-  4/4 ran Akvan as a medium).
-- Medium #12 Wall Street -> Israeli operation in Gaza, day two
-  (attributed claims only: "medics say", "Hamas calls it").
-- Brief #33 handball (ended 14 Nov) -> Duckett's 133 seals England's
-  ODI series win; brief #34 rugby final (15 Nov) -> Voyager 1 is one
-  light-day out (NASA JPL briefing at noon EST).
-- Numbers strip moved to the top; stats now 99 / 200,000 / 45% / $81.3bn.
-- Region counts recount: Americas 7, Africa 7, Asia 4, Europe 4,
-  Mideast 3, World 12, Oceania 4 (= 41).
+v3 changes vs v2 (98.0686%, rank 185):
+- Medium #6 Coalition Berlin -> Florida flooding (0/3 current top entries
+  ran Berlin; rank 1 ran Florida as a medium; a genuine 19 Nov event:
+  flooding continues, schools shut Thursday). NO "300 rescue calls"
+  (unverified); verified facts only.
+- Medium #12 Gaza operation -> Melenchon could win (0/3 current top
+  entries ran Gaza; 3/3 ran Melenchon / Modi-Wales / Libya drugs).
+- Brief #35 (Canada's Carney at APEC) -> Libya drug seizure in Derna
+  (Reuters 18 Nov; NOTE: gap-v3 file called #35 "Rugby League Cup", but
+  that brief was already swapped out in v2 for Voyager 1 -- #35 in v2 is
+  Canada's Carney, so that is what v3 swaps).
+- Brief #31 Peru rain advisory -> Modi meets William & Kate in New Delhi.
+- Brief #32 Brazil rain advisory -> Saudi all-clear after Houthi missile.
+- Numbers strip 4 -> 6 stats (+15.9m GTA pre-orders, +730,000 Rohingya).
+- Region counts recount from data: Americas 5, Africa 8, Asia 5,
+  Europe 4, Mideast 3, World 12, Oceania 4 (= 41). (Task estimate said
+  Americas 6 / Oceania 3, but that assumed the Rugby brief still existed;
+  it did not -- Canada's Carney is Americas, so Americas 5, Oceania 4.)
 
-DATE CHECK sync: Pew was REMOVED from the DATE CHECK list because Pew IS
-medium #9 on this page -- listing it as "left out" would contradict the
-page. The EU EUR45bn loan and the COP31 first draft stay listed: neither
-is a standalone story on the page (the loan is one clause of context in
-the Berlin-meeting medium; the COP31 medium covers the final-days talks,
-not the draft's Monday release). Voyager 1 is NOT in DATE CHECK because
-it is brief #34; Van Gogh is NOT in DATE CHECK because it was reported
-19 Nov, not an 18 Nov story.
+DATE CHECK sync: unchanged from v2 (Kerch span 17 Nov, Knesset Kahana,
+Peltola, Nvidia, Jeffries, EU EUR45bn loan, Bangladesh, COP31 draft).
+Florida, Melenchon, Libya, Modi-Wales and Saudi are NOT in DATE CHECK
+because they are now on the page. Pew stays OUT of DATE CHECK (it is
+medium #9); Voyager 1 stays OUT (brief #34); Van Gogh stays OUT
+(reported 19 Nov).
 
 Two big events were still pending when this was built: the APEC trilateral
 and the ICJ verdict (read 19 Nov 08:00 GMT = 15:00 WIB). Neither outcome
@@ -162,12 +165,12 @@ hline(28, W - 28, 96, 2)
 hline(28, W - 28, 100, 1)
 
 # ---------------------------------------------------------------- region bar
-# Story counts per region, counted from the 41 stories below (v2 recount):
-# Americas 7, Africa 7, Asia 4, Europe 4, Mideast 3, World 12, Oceania 4.
+# Story counts per region, counted from the 41 stories below (v3 recount):
+# Americas 5, Africa 8, Asia 5, Europe 4, Mideast 3, World 12, Oceania 4.
 REGIONS = [
-    ("Americas", 7, RED),
-    ("Africa", 7, BROWN),
-    ("Asia", 4, GREEN),
+    ("Americas", 5, RED),
+    ("Africa", 8, BROWN),
+    ("Asia", 5, GREEN),
     ("Europe", 4, BLUE),
     ("Mideast", 3, ORANGE),
     ("World", 12, WORLD),
@@ -197,13 +200,18 @@ for name, count, col in REGIONS:
     x += seg
 
 # ---------------------------------------------------------------- the day in numbers (top strip, v2: moved up)
+# v3: 6 stats (was 4); box width computed from the count so the strip
+# always spans the full page width. Labels shortened to fit 154px boxes.
 STATS = [
     ("99", "GTA VI's Metacritic score", WORLD),
-    ("200,000", "People to move ahead of Cyclone Akvan", GREEN),
+    ("200,000", "People to move for Akvan", GREEN),
     ("45%", "Russian refineries cut", BLUE),
     ("$81.3bn", "Anthropic's IPO raise", RED),
+    ("15.9m", "GTA VI pre-orders", WORLD),
+    ("730,000", "Rohingya who fled in 2017", BROWN),
 ]
-NUM_Y, NUM_H, NUM_W, NUM_GAP = 132, 50, 236, 8
+NUM_Y, NUM_H, NUM_GAP = 132, 50, 8
+NUM_W = (W - 56 - (len(STATS) - 1) * NUM_GAP) // len(STATS)
 for i, (num, lab, col) in enumerate(STATS):
     x = 28 + i * (NUM_W + NUM_GAP)
     y = NUM_Y
@@ -264,9 +272,9 @@ MEDS = [
     dict(n=5, kick="US  ·  TECH", col=BROWN, ai="anthropic",
          head="Anthropic debuts on Nasdaq at $83",
          fact="Raised $81.3bn, 980m shares; valued ~$1.1tn."),
-    dict(n=6, kick="EUROPE  ·  UKRAINE", col=BLUE, ai="coalition",
-         head="Coalition of the Willing meets in Berlin",
-         fact="Five nations + NATO meet; EU proposed €45bn loan."),
+    dict(n=6, kick="US  ·  WEATHER", col=RED, ai="florida",
+         head="Flooded Florida braces for still more rain",
+         fact="A foot of rain in hours; schools shut Thursday in Broward."),
     dict(n=7, kick="EUROPE  ·  ENERGY", col=BLUE, ai="refineries",
          head="Ukraine drone strikes cut Russian refineries 45%",
          fact="15 of 35 refineries hit; output down to ~400,000 t/day."),
@@ -282,9 +290,10 @@ MEDS = [
     dict(n=11, kick="MIDDLE EAST  ·  GULF WAR", col=RED, ai="gulf",
          head="Iran hits US base in Kuwait; tanker burns",
          fact="UAE tanker hit in Hormuz; 11 crew hurt, 1 missing."),
-    dict(n=12, kick="MIDDLE EAST  ·  GAZA", col=ORANGE, ai="gaza",
-         head="Israeli operation in Gaza enters second day",
-         fact="Past Yellow Line; Hamas: ceasefire breach; medics say 3 killed."),
+    dict(n=12, kick="EUROPE  ·  POLITICS", col=BLUE, ai="melenchon",
+         head="Mélenchon could win, says France's justice minister",
+         fact="Darmanin says Mélenchon could win 2027 runoff; centrists "
+              "must unite."),
     dict(n=13, kick="WORLD  ·  CLIMATE", col=WORLD, ai="cop31",
          head="COP31 enters final days in Antalya",
          fact="144-article draft; phaseout & ≥$120bn/yr adaptation."),
@@ -294,13 +303,13 @@ MEDS = [
 AI_MED = {
     "kerch": ("media-generation-kerch-bridge-0-e33777c7-3d8d-4b41-ac1f-a52ee1a7b7df.webp", 0.5),
     "anthropic": ("media-generation-anthropic-ipo-0-8f3e50eb-5adf-4dab-94b5-4be5e1dad996.webp", 0.5),
-    "coalition": ("media-generation-coalition-berlin-0-7ecab74e-7856-44ee-9a18-1b57c992aa75.webp", 0.5),
+    "florida": ("media-generation-florida-flooding-0-56f93858-f7a0-4436-85f0-b12b96e5efee.webp", 0.5),
     "refineries": ("media-generation-russian-refineries-0-c7e9f73d-8234-4430-9e0e-a07dc1fe0a52.webp", 0.5),
     "akvan": ("media-generation-media-generation-cyclone-akvan-0-aaf16147-fda0-4396-a1b5-65de578b7509.webp", 0.5),
     "pew": ("media-generation-pew-religions-0-593b138e-cd63-4130-87f9-d42bcc670081.webp", 0.5),
     "venezuela": ("media-generation-venezuela-deal-0-cddcd984-61c0-4d9f-adfa-e9d0f74688b8.webp", 0.5),
     "gulf": ("media-generation-gulf-war-0-09dc008e-409a-4836-b612-3dd5596e22cf.webp", 0.5),
-    "gaza": ("media-generation-media-generation-gaza-operatio-0-3f10ae41-59ef-4175-a8f7-2a0bcd8cbcc7.webp", 0.5),
+    "melenchon": ("media-generation-melenchon-paris-0-b81cd831-ec49-454e-938e-cbdb0e47912e.webp", 0.5),
     "cop31": ("media-generation-cop31-antalya-0-02458d71-7046-403f-be2b-dd70896e411b.webp", 0.5),
 }
 
@@ -368,15 +377,18 @@ REG = {"americas": RED, "europe": BLUE, "mideast": ORANGE,
 NUMBERED = [
     (1, 113.8, 22.5, "asia"), (2, 4.3, 52.1, "europe"),
     (3, -81.0, 27.0, "americas"), (4, 36.5, 45.3, "europe"),
-    (5, -74.0, 40.7, "americas"), (6, 13.4, 52.5, "europe"),
+    (5, -74.0, 40.7, "americas"), (6, -80.2, 26.0, "americas"),
     (7, 37.6, 55.7, "europe"), (8, 86.5, 19.8, "asia"),
     (9, 77.0, 20.0, "asia"), (10, -66.9, 10.5, "americas"),
-    (11, 47.5, 29.3, "mideast"), (12, 34.5, 31.5, "mideast"),
+    (11, 47.5, 29.3, "mideast"), (12, 2.35, 48.85, "europe"),
     (13, 30.7, 36.9, "europe"),
 ]
+# v3: #6 Hollywood FL sits ~1px from #3 (GTA/Leonida, also Florida), so
+# its badge is pushed far left-down; #12 Paris sits next to #2 (The Hague),
+# so its badge is pushed left-down. Spacing verified after the build.
 OFFSETS = {1: (14, 10), 2: (-22, -14), 3: (22, -8), 4: (26, 2),
-           5: (26, -12), 6: (0, -22), 7: (20, -16), 8: (18, -12),
-           9: (-14, 12), 10: (-14, 10), 11: (-18, -10), 12: (0, 22),
+           5: (26, -12), 6: (-32, 8), 7: (20, -16), 8: (18, -12),
+           9: (-14, 12), 10: (-14, 10), 11: (-18, -10), 12: (-28, 16),
            13: (-18, 18)}
 for n, lon, lat, reg in NUMBERED:
     x, y = project(lon, lat, MAP)
@@ -395,9 +407,9 @@ BRIEF_DOTS = [
     (170.0, -37.0, "oceania"), (28.0, 59.8, "europe"),
     (-77.0, 38.9, "americas"), (138.6, -34.9, "world"),
     (0.1, 52.2, "world"), (-105.0, 40.0, "world"),
-    (9.0, 16.5, "world"), (-77.0, -12.0, "americas"),
-    (-47.9, -15.8, "americas"), (147.3, -42.9, "oceania"),
-    (-118.2, 34.2, "world"), (-73.0, 46.0, "americas"),
+    (9.0, 16.5, "world"), (77.2, 28.6, "asia"),  # v3: #31 Modi-Wales, New Delhi
+    (46.7, 24.7, "mideast"), (147.3, -42.9, "oceania"),  # v3: #32 Saudi, Riyadh
+    (-118.2, 34.2, "world"), (32.8, 32.8, "africa"),  # v3: #35 Libya, Derna
     (1.5, 59.0, "world"), (50.6, 26.2, "mideast"),
     (-82.0, 34.0, "americas"), (110.0, 25.0, "asia"),
     (-30.0, 0.0, "world"), (20.0, 40.0, "world"),
@@ -428,11 +440,11 @@ BRIEFS = [
     (28, "AlphaFold3 maps 200m proteins"),
     (29, "Teen cannabis slows cognition"),
     (30, "First Lassa vaccine shows promise"),
-    (31, "Peru warns of heavy rain 18–20 Nov"),
-    (32, "Brazil rain; El Niño builds"),
+    (31, "Modi meets William & Kate in New Delhi"),
+    (32, "Saudi all-clear after Houthi missile downed"),
     (33, "Duckett's 133 seals England ODI win"),
     (34, "Voyager 1 is one light-day out"),
-    (35, "Canada's Carney at APEC Shenzhen"),
+    (35, "Libya seizes 4m+ pills, 29kg cocaine in Derna"),
     (36, "Brent oil ~$91.68, down 16% in month"),
     (37, "Bahrain refinery back after attack"),
     (38, "Trump heads home after Asia tour"),
